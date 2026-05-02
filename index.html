@@ -471,11 +471,11 @@ function scoreColor(s) {
 }
 
 function fmtDate(ds) {
-  const d = new Date(ds+'T00:00:00+09:00');
+  const d = new Date(ds+'T00:00:00Z');
   const DOW = ['日','月','火','水','木','金','土'];
   return {
-    main:`${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`,
-    year:`${d.getFullYear()}年`
+    main:`${d.getUTCMonth()+1}月${d.getUTCDate()}日（${DOW[d.getUTCDay()]}）`,
+    year:`${d.getUTCFullYear()}年`
   };
 }
 
@@ -531,11 +531,11 @@ function renderGraph() {
   const data = load();
   const today = jstToday();
 
-  // Build date series
+  // Build date series (UTC-based to avoid timezone shift)
   const dates = [];
   for (let i = gRange-1; i >= 0; i--) {
-    const d = new Date(today+'T00:00:00+09:00');
-    d.setDate(d.getDate()-i);
+    const d = new Date(today+'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate()-i);
     dates.push(d.toISOString().slice(0,10));
   }
 
@@ -619,8 +619,8 @@ function renderGraph() {
   const step = gRange<=7 ? 1 : 5;
   dates.forEach((ds,i) => {
     if (i%step!==0 && i!==dates.length-1) return;
-    const d = new Date(ds+'T00:00:00+09:00');
-    ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`, PL+(dates.length>1?i/(dates.length-1):0.5)*CW, H-4);
+    const d = new Date(ds+'T00:00:00Z');
+    ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, PL+(dates.length>1?i/(dates.length-1):0.5)*CW, H-4);
   });
 
   // Stats card
