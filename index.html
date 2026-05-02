@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="睡眠記録">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>睡眠記録</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --primary:#6366f1;--primary-dark:#4f46e5;--primary-light:#e0e7ff;
+  --bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
+  --green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--nav:64px;
+}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+  background:var(--bg);color:var(--text);
+  max-width:480px;margin:0 auto;min-height:100%;
+  padding-bottom:var(--nav);
+}
+/* Header */
+header{
+  background:var(--primary);color:#fff;
+  padding:14px 20px 14px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(99,102,241,.3);
+}
+header h1{font-size:17px;font-weight:700;letter-spacing:.02em}
+
+/* Pages */
+.page{display:none;padding:16px;animation:fadeIn .15s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Card */
+.card{background:var(--card);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
+
+/* Form */
+.form-group{margin-bottom:22px}
+.form-group:last-child{margin-bottom:0}
+.form-label{font-size:15px;font-weight:600;margin-bottom:10px;display:block}
+.form-hint{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between}
+
+/* Rating buttons */
+.rating-row{display:flex;gap:7px}
+.r-btn{
+  flex:1;height:46px;border:2px solid var(--border);border-radius:10px;
+  background:#fff;font-size:17px;font-weight:700;cursor:pointer;
+  color:var(--muted);transition:all .12s;display:flex;align-items:center;justify-content:center;
+  font-family:inherit;
+}
+.r-btn:active{transform:scale(.94)}
+.r-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.35)}
+
+/* Date input */
+.date-input{
+  width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;
+  font-size:15px;font-family:inherit;color:var(--text);background:#fff;outline:none;
+  transition:border-color .15s;
+}
+.date-input:focus{border-color:var(--primary)}
+
+/* Score preview */
+.score-box{
+  background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+  border-radius:16px;padding:20px;text-align:center;margin-bottom:14px;
+  color:#fff;
+}
+.score-big{font-size:52px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.score-sub{font-size:13px;opacity:.85;margin-top:6px;font-weight:500}
+
+/* Button */
+.btn{
+  width:100%;padding:15px;background:var(--primary);color:#fff;border:none;
+  border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .12s,transform .1s;letter-spacing:.02em;
+}
+.btn:active{background:var(--primary-dark);transform:scale(.98)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:calc(var(--nav) + 16px);left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:#1e293b;color:#fff;padding:12px 22px;border-radius:100px;
+  font-size:14px;font-weight:600;opacity:0;transition:all .25s;z-index:999;
+  white-space:nowrap;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Bottom nav */
+nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;height:var(--nav);
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;z-index:200;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;
+  border:none;background:none;font-family:inherit;transition:color .15s;padding:6px 0;
+}
+.nav-btn svg{width:22px;height:22px;stroke-width:2}
+.nav-btn.on{color:var(--primary)}
+.nav-btn.on svg{stroke-width:2.5}
+
+/* History */
+.h-empty{text-align:center;padding:56px 16px;color:var(--muted)}
+.h-empty svg{opacity:.2;margin-bottom:14px}
+.h-empty p{font-size:15px;margin-bottom:6px}
+.h-empty small{font-size:13px}
+
+.h-item{
+  display:flex;align-items:center;padding:14px 0;
+  border-bottom:1px solid var(--border);gap:10px;
+}
+.h-item:last-child{border-bottom:none}
+.h-date{flex:1;font-size:15px;font-weight:600}
+.h-date small{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.h-scores{display:flex;gap:14px}
+.h-score{text-align:center;min-width:36px}
+.h-score .val{font-size:20px;font-weight:800;line-height:1}
+.h-score .lbl{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500}
+.badge{display:inline-block;font-size:9px;background:#fef3c7;color:#92400e;
+  padding:1px 5px;border-radius:100px;font-weight:700;vertical-align:middle;margin-left:2px}
+
+/* Graph */
+.g-toggle{display:flex;background:var(--border);border-radius:10px;padding:3px;margin-bottom:16px}
+.g-toggle button{
+  flex:1;padding:9px;border:none;border-radius:8px;font-size:14px;font-weight:700;
+  cursor:pointer;background:none;color:var(--muted);font-family:inherit;transition:all .15s;
+}
+.g-toggle button.on{background:#fff;color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.g-axis-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+canvas{display:block;border-radius:8px}
+
+/* Safe area */
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  nav{padding-bottom:env(safe-area-inset-bottom);height:calc(var(--nav) + env(safe-area-inset-bottom))}
+  body{padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 16px)}
+}
+</style>
+</head>
+<body>
+
+<header><h1 id="hTitle">朝の記録</h1></header>
+
+<main>
+
+<!-- ===== 朝の記録 ===== -->
+<section id="p-morning" class="page active">
+  <div class="card">
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label" for="mDate">日付</label>
+      <input id="mDate" type="date" class="date-input">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">睡眠の質</div>
+
+    <div class="form-group">
+      <label class="form-label">寝つき</label>
+      <div class="rating-row" data-f="onset">
+        <button class="r-btn" data-v="1">1</button><button class="r-btn" data-v="2">2</button>
+        <button class="r-btn" data-v="3">3</button><button class="r-btn" data-v="4">4</button>
+        <button class="r-btn" data-v="5">5</button>
+      </div>
+      <div class="form-hint"><span>眠れなかった</span><span>すぐ眠れた</span></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">中途覚醒</label>
+      <div class="rating-row" data-f="waking">
+        <button class="r-btn" data-v="1">1</button><button class="r-btn" data-v="2">2</button>
+        <button class="r-btn" data-v="3">3</button><button class="r-btn" data-v="4">4</button>
+        <button class="r-btn" data-v="5">5</button>
+      </div>
+      <div class="form-hint"><span>何度も目が覚めた</span><span>一度も起きなかった</span></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">熟睡感</label>
+      <div class="rating-row" data-f="deep">
+        <button class="r-btn" data-v="1">1</button><button class="r-btn" data-v="2">2</button>
+        <button class="r-btn" data-v="3">3</button><button class="r-btn" data-v="4">4</button>
+        <button class="r-btn" data-v="5">5</button>
+      </div>
+      <div class="form-hint"><span>全く熟睡できなかった</span><span>ぐっすり眠れた</span></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">起床時の気分</label>
+      <div class="rating-row" data-f="mood">
+        <button class="r-btn" data-v="1">1</button><button class="r-btn" data-v="2">2</button>
+        <button class="r-btn" data-v="3">3</button><button class="r-btn" data-v="4">4</button>
+        <button class="r-btn" data-v="5">5</button>
+      </div>
+      <div class="form-hint"><span>最悪</span><span>最高</span></div>
+    </div>
+  </div>
+
+  <div class="score-box">
+    <div class="score-big" id="mScoreNum">--</div>
+    <div class="score-sub" id="mScoreLbl">朝のスコア（暫定）</div>
+  </div>
+
+  <button class="btn" onclick="saveMorning()">保存する</button>
+</section>
+
+<!-- ===== 夜の記録 ===== -->
+<section id="p-evening" class="page">
+  <div class="card">
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label" for="eDate">日付</label>
+      <input id="eDate" type="date" class="date-input">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">日中の状態</div>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">日中の眠気</label>
+      <div class="rating-row" data-f="sleepy">
+        <button class="r-btn" data-v="1">1</button><button class="r-btn" data-v="2">2</button>
+        <button class="r-btn" data-v="3">3</button><button class="r-btn" data-v="4">4</button>
+        <button class="r-btn" data-v="5">5</button>
+      </div>
+      <div class="form-hint"><span>眠気なし</span><span>非常に眠かった</span></div>
+    </div>
+  </div>
+
+  <div id="eTotalBox" class="score-box" style="display:none">
+    <div class="score-big" id="eTotalNum">--</div>
+    <div class="score-sub">今日の総合スコア</div>
+  </div>
+
+  <button class="btn" onclick="saveEvening()">保存する</button>
+</section>
+
+<!-- ===== 履歴 ===== -->
+<section id="p-history" class="page">
+  <div id="historyContent"></div>
+</section>
+
+<!-- ===== グラフ ===== -->
+<section id="p-graph" class="page">
+  <div class="card">
+    <div class="g-toggle">
+      <button id="gBtn7" class="on" onclick="setRange(7)">直近7日</button>
+      <button id="gBtn30" onclick="setRange(30)">直近30日</button>
+    </div>
+    <canvas id="gc"></canvas>
+    <div class="g-axis-labels">
+      <span id="gStart"></span><span id="gEnd"></span>
+    </div>
+  </div>
+  <div id="graphStats"></div>
+</section>
+
+</main>
+
+<!-- Bottom nav -->
+<nav>
+  <button class="nav-btn on" data-p="morning" onclick="go('morning')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>朝
+  </button>
+  <button class="nav-btn" data-p="evening" onclick="go('evening')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>夜
+  </button>
+  <button class="nav-btn" data-p="history" onclick="go('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>履歴
+  </button>
+  <button class="nav-btn" data-p="graph" onclick="go('graph')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>グラフ
+  </button>
+</nav>
+
+<div id="toast" class="toast">保存しました</div>
+
+<script>
+// ── JST date ──────────────────────────────────────────
+function jstToday() {
+  return new Date(Date.now() + 9*3600000).toISOString().slice(0,10);
+}
+
+// ── localStorage ──────────────────────────────────────
+const KEY = 'sleepData_v1';
+function load() { return JSON.parse(localStorage.getItem(KEY)||'{}'); }
+function store(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+
+// ── Score formulas ────────────────────────────────────
+function mScore(o,w,d,m) { return Math.round((o+w+d+m-4)/16*100); }
+function eScore(s) { return Math.round((5-s)/4*100); }
+function tScore(ms,es) { return Math.round(ms*0.7+es*0.3); }
+
+// ── Rating state ──────────────────────────────────────
+const R = {};
+
+document.querySelectorAll('.rating-row').forEach(row => {
+  const f = row.dataset.f;
+  R[f] = null;
+  row.querySelectorAll('.r-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.r-btn').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      R[f] = +btn.dataset.v;
+      if (['onset','waking','deep','mood'].includes(f)) updateMPreview();
+      if (f === 'sleepy') updateEPreview();
+    });
+  });
+});
+
+function setR(f, v) {
+  R[f] = v;
+  const row = document.querySelector(`.rating-row[data-f="${f}"]`);
+  if (!row) return;
+  row.querySelectorAll('.r-btn').forEach(b => b.classList.toggle('on', +b.dataset.v===v));
+}
+function clearR(...fields) {
+  fields.forEach(f => {
+    R[f] = null;
+    const row = document.querySelector(`.rating-row[data-f="${f}"]`);
+    if (row) row.querySelectorAll('.r-btn').forEach(b => b.classList.remove('on'));
+  });
+}
+
+// ── Page navigation ───────────────────────────────────
+const TITLES = {morning:'朝の記録',evening:'夜の記録',history:'履歴',graph:'グラフ'};
+
+function go(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('active');
+  document.querySelector(`.nav-btn[data-p="${p}"]`).classList.add('on');
+  document.getElementById('hTitle').textContent = TITLES[p];
+  if (p==='morning') initMorning();
+  if (p==='evening') initEvening();
+  if (p==='history') renderHistory();
+  if (p==='graph')   renderGraph();
+}
+
+// ── Toast ─────────────────────────────────────────────
+function toast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Morning ───────────────────────────────────────────
+function initMorning() {
+  const today = jstToday();
+  document.getElementById('mDate').value = today;
+  loadMorningData(today);
+}
+
+function loadMorningData(date) {
+  const rec = (load()[date]||{}).morning;
+  if (rec) {
+    setR('onset',rec.onset); setR('waking',rec.waking);
+    setR('deep',rec.deep);   setR('mood',rec.mood);
+    document.getElementById('mScoreNum').textContent = rec.score;
+    document.getElementById('mScoreLbl').textContent = '朝のスコア（暫定）';
+  } else {
+    clearR('onset','waking','deep','mood');
+    document.getElementById('mScoreNum').textContent = '--';
+  }
+}
+
+document.getElementById('mDate').addEventListener('change', e => loadMorningData(e.target.value));
+
+function updateMPreview() {
+  const {onset,waking,deep,mood} = R;
+  if (onset&&waking&&deep&&mood) {
+    document.getElementById('mScoreNum').textContent = mScore(onset,waking,deep,mood);
+  }
+}
+
+function saveMorning() {
+  const {onset,waking,deep,mood} = R;
+  if (!onset||!waking||!deep||!mood) { alert('すべての項目を選択してください'); return; }
+  const date = document.getElementById('mDate').value;
+  const ms = mScore(onset,waking,deep,mood);
+  const data = load();
+  if (!data[date]) data[date] = {};
+  data[date].morning = {onset,waking,deep,mood,score:ms};
+  if (data[date].evening) {
+    const es = eScore(data[date].evening.sleepy);
+    data[date].total = tScore(ms,es);
+    data[date].prov = false;
+  } else {
+    data[date].total = ms;
+    data[date].prov = true;
+  }
+  store(data);
+  toast();
+}
+
+// ── Evening ───────────────────────────────────────────
+function initEvening() {
+  const today = jstToday();
+  document.getElementById('eDate').value = today;
+  loadEveningData(today);
+}
+
+function loadEveningData(date) {
+  const rec = load()[date]||{};
+  if (rec.evening) {
+    setR('sleepy', rec.evening.sleepy);
+  } else {
+    clearR('sleepy');
+  }
+  updateEPreview();
+}
+
+document.getElementById('eDate').addEventListener('change', e => loadEveningData(e.target.value));
+
+function updateEPreview() {
+  const date = document.getElementById('eDate').value;
+  const rec = load()[date]||{};
+  const box = document.getElementById('eTotalBox');
+  if (R.sleepy && rec.morning) {
+    const ms = rec.morning.score;
+    const es = eScore(R.sleepy);
+    const ts = tScore(ms, es);
+    document.getElementById('eTotalNum').textContent = ts;
+    box.style.display = '';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function saveEvening() {
+  if (!R.sleepy) { alert('眠気を選択してください'); return; }
+  const date = document.getElementById('eDate').value;
+  const data = load();
+  if (!data[date]) data[date] = {};
+  data[date].evening = {sleepy: R.sleepy};
+  if (data[date].morning) {
+    const ms = data[date].morning.score;
+    const es = eScore(R.sleepy);
+    data[date].total = tScore(ms, es);
+    data[date].prov = false;
+  }
+  store(data);
+  updateEPreview();
+  toast();
+}
+
+// ── History ───────────────────────────────────────────
+function scoreColor(s) {
+  if (s>=80) return 'var(--green)';
+  if (s>=60) return 'var(--primary)';
+  if (s>=40) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function fmtDate(ds) {
+  const d = new Date(ds+'T00:00:00+09:00');
+  const DOW = ['日','月','火','水','木','金','土'];
+  return {
+    main:`${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`,
+    year:`${d.getFullYear()}年`
+  };
+}
+
+function renderHistory() {
+  const data = load();
+  const keys = Object.keys(data).sort().reverse();
+  const el = document.getElementById('historyContent');
+  if (!keys.length) {
+    el.innerHTML=`<div class="h-empty">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <p>記録がまだありません</p>
+      <small>朝・夜の記録を保存してください</small>
+    </div>`;
+    return;
+  }
+  let html = '<div class="card">';
+  keys.forEach(k => {
+    const r = data[k];
+    const fd = fmtDate(k);
+    const ms = r.morning ? r.morning.score : null;
+    const ts = r.total !== undefined ? r.total : null;
+    html += `<div class="h-item">
+      <div class="h-date">${fd.main}<small>${fd.year}</small></div>
+      <div class="h-scores">
+        ${ms!=null ? `<div class="h-score"><div class="val" style="color:${scoreColor(ms)}">${ms}</div><div class="lbl">朝</div></div>` : ''}
+        ${ts!=null ? `<div class="h-score">
+          <div class="val" style="color:${scoreColor(ts)}">${ts}</div>
+          <div class="lbl">総合${r.prov?`<span class="badge">暫定</span>`:''}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── Graph ─────────────────────────────────────────────
+let gRange = 7;
+
+function setRange(n) {
+  gRange = n;
+  document.getElementById('gBtn7').classList.toggle('on', n===7);
+  document.getElementById('gBtn30').classList.toggle('on', n===30);
+  renderGraph();
+}
+
+function renderGraph() {
+  const canvas = document.getElementById('gc');
+  const data = load();
+  const today = jstToday();
+
+  // Build date series
+  const dates = [];
+  for (let i = gRange-1; i >= 0; i--) {
+    const d = new Date(today+'T00:00:00+09:00');
+    d.setDate(d.getDate()-i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+
+  const scores = dates.map(d => (data[d]&&data[d].total!=null) ? data[d].total : null);
+  const hasData = scores.some(s => s!==null);
+
+  // Canvas sizing
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.parentElement.clientWidth - 36;
+  const H = 200;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const PL=42, PR=10, PT=14, PB=34;
+  const CW=W-PL-PR, CH=H-PT-PB;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  const gridVals = [0,25,50,75,100];
+  gridVals.forEach(v => {
+    const y = PT + CH - v/100*CH;
+    ctx.strokeStyle = v===0 ? '#cbd5e1' : '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PL,y); ctx.lineTo(PL+CW,y); ctx.stroke();
+    ctx.fillStyle='#94a3b8'; ctx.font=`11px -apple-system,sans-serif`;
+    ctx.textAlign='right'; ctx.fillText(v, PL-5, y+4);
+  });
+
+  if (!hasData) {
+    ctx.fillStyle='#cbd5e1'; ctx.font=`14px -apple-system,sans-serif`;
+    ctx.textAlign='center'; ctx.fillText('データがありません', PL+CW/2, PT+CH/2);
+  } else {
+    // X positions
+    const xOf = i => PL + (dates.length>1 ? i/(dates.length-1) : 0.5) * CW;
+    const yOf = s => PT + CH - s/100*CH;
+
+    // Area fill
+    const grad = ctx.createLinearGradient(0,PT,0,PT+CH);
+    grad.addColorStop(0,'rgba(99,102,241,.2)');
+    grad.addColorStop(1,'rgba(99,102,241,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    let firstX=null, lastX=null;
+    scores.forEach((s,i) => {
+      if (s===null) return;
+      const x=xOf(i), y=yOf(s);
+      if (firstX===null) { ctx.moveTo(x,y); firstX=x; } else ctx.lineTo(x,y);
+      lastX=x;
+    });
+    if (firstX!==null) {
+      ctx.lineTo(lastX,PT+CH); ctx.lineTo(firstX,PT+CH); ctx.closePath(); ctx.fill();
+    }
+
+    // Line segments
+    ctx.strokeStyle='#6366f1'; ctx.lineWidth=2.5;
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    let inPath=false;
+    ctx.beginPath();
+    scores.forEach((s,i) => {
+      if (s===null) { inPath=false; return; }
+      if (!inPath) { ctx.moveTo(xOf(i),yOf(s)); inPath=true; }
+      else ctx.lineTo(xOf(i),yOf(s));
+    });
+    ctx.stroke();
+
+    // Dots
+    scores.forEach((s,i) => {
+      if (s===null) return;
+      ctx.beginPath(); ctx.arc(xOf(i),yOf(s),4.5,0,Math.PI*2);
+      ctx.fillStyle='#6366f1'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    });
+  }
+
+  // X axis labels
+  ctx.fillStyle='#94a3b8'; ctx.font=`10px -apple-system,sans-serif`;
+  ctx.textAlign='center';
+  const step = gRange<=7 ? 1 : 5;
+  dates.forEach((ds,i) => {
+    if (i%step!==0 && i!==dates.length-1) return;
+    const d = new Date(ds+'T00:00:00+09:00');
+    ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`, PL+(dates.length>1?i/(dates.length-1):0.5)*CW, H-4);
+  });
+
+  // Stats card
+  const valid = scores.filter(s=>s!==null);
+  const statsEl = document.getElementById('graphStats');
+  if (valid.length) {
+    const avg = Math.round(valid.reduce((a,b)=>a+b,0)/valid.length);
+    const mx  = Math.max(...valid);
+    const mn  = Math.min(...valid);
+    statsEl.innerHTML = `<div class="card" style="display:flex;gap:0;padding:14px">
+      ${[['平均',avg,'var(--primary)'],['最高',mx,'var(--green)'],['最低',mn,'var(--red)']].map(([l,v,c])=>`
+        <div style="flex:1;text-align:center;border-right:1px solid var(--border);padding:0 8px">
+          <div style="font-size:22px;font-weight:800;color:${c}">${v}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${l}</div>
+        </div>`).join('')}
+      <div style="flex:1;text-align:center;padding:0 8px">
+        <div style="font-size:22px;font-weight:800;color:var(--text)">${valid.length}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">記録日数</div>
+      </div>
+    </div>`;
+  } else {
+    statsEl.innerHTML = '';
+  }
+}
+
+// ── Service Worker ────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ── Init ─────────────────────────────────────────────
+initMorning();
+</script>
+</body>
+</html>

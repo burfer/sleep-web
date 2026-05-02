@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#6366f1"/>
+  <!-- Moon -->
+  <path d="M320 160 C320 240 264 296 184 296 C168 296 153 294 139 290 C163 334 210 364 264 364 C344 364 408 300 408 220 C408 166 378 119 334 95 C328 116 320 137 320 160 Z" fill="#fff" opacity="0.95"/>
+  <!-- Stars -->
+  <circle cx="160" cy="170" r="8" fill="#e0e7ff"/>
+  <circle cx="130" cy="220" r="5" fill="#e0e7ff"/>
+  <circle cx="175" cy="135" r="5" fill="#e0e7ff"/>
+</svg>
