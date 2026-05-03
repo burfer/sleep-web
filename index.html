@@ -363,10 +363,16 @@ function toast() {
 }
 
 // ── Morning ───────────────────────────────────────────
+let _mInitDay = null;
+
 function initMorning() {
   const today = jstToday();
-  document.getElementById('mDate').value = today;
-  loadMorningData(today);
+  const el = document.getElementById('mDate');
+  if (_mInitDay !== today) {
+    el.value = today;
+    _mInitDay = today;
+  }
+  loadMorningData(el.value);
 }
 
 function loadMorningData(date) {
@@ -412,10 +418,16 @@ function saveMorning() {
 }
 
 // ── Evening ───────────────────────────────────────────
+let _eInitDay = null;
+
 function initEvening() {
   const today = jstToday();
-  document.getElementById('eDate').value = today;
-  loadEveningData(today);
+  const el = document.getElementById('eDate');
+  if (_eInitDay !== today) {
+    el.value = today;
+    _eInitDay = today;
+  }
+  loadEveningData(el.value);
 }
 
 function loadEveningData(date) {
