@@ -84,6 +84,8 @@ header h1{font-size:17px;font-weight:700;letter-spacing:.02em}
   transition:background .12s,transform .1s;letter-spacing:.02em;
 }
 .btn:active{background:var(--primary-dark);transform:scale(.98)}
+.btn.saved{background:var(--green);cursor:default}
+.btn.saved:active{background:var(--green);transform:none}
 
 /* Toast */
 .toast{
@@ -213,7 +215,7 @@ canvas{display:block;border-radius:8px}
     <div class="score-sub" id="mScoreLbl">朝のスコア（暫定）</div>
   </div>
 
-  <button class="btn" onclick="saveMorning()">保存する</button>
+  <button id="mSaveBtn" class="btn" onclick="saveMorning()">保存する</button>
 </section>
 
 <!-- ===== 夜の記録 ===== -->
@@ -243,7 +245,7 @@ canvas{display:block;border-radius:8px}
     <div class="score-sub">今日の総合スコア</div>
   </div>
 
-  <button class="btn" onclick="saveEvening()">保存する</button>
+  <button id="eSaveBtn" class="btn" onclick="saveEvening()">保存する</button>
 </section>
 
 <!-- ===== 履歴 ===== -->
@@ -366,6 +368,18 @@ function toast() {
 
 // ── Morning ───────────────────────────────────────────
 let _mInitDay = null;
+let mSaved = null;
+
+function updateMBtn() {
+  const btn = document.getElementById('mSaveBtn');
+  const date = document.getElementById('mDate').value;
+  const done = mSaved && mSaved.date===date &&
+    mSaved.onset===R.onset && mSaved.waking===R.waking &&
+    mSaved.deep===R.deep && mSaved.mood===R.mood;
+  btn.textContent = done ? '保存済み' : '保存する';
+  btn.classList.toggle('saved', !!done);
+  btn.disabled = !!done;
+}
 
 function initMorning() {
   const today = jstToday();
@@ -384,10 +398,13 @@ function loadMorningData(date) {
     setR('deep',rec.deep);   setR('mood',rec.mood);
     document.getElementById('mScoreNum').textContent = rec.score;
     document.getElementById('mScoreLbl').textContent = '朝のスコア（暫定）';
+    mSaved = {date, onset:rec.onset, waking:rec.waking, deep:rec.deep, mood:rec.mood};
   } else {
     clearR('onset','waking','deep','mood');
     document.getElementById('mScoreNum').textContent = '--';
+    mSaved = null;
   }
+  updateMBtn();
 }
 
 document.getElementById('mDate').addEventListener('change', e => loadMorningData(e.target.value));
@@ -397,6 +414,7 @@ function updateMPreview() {
   if (onset&&waking&&deep&&mood) {
     document.getElementById('mScoreNum').textContent = mScore(onset,waking,deep,mood);
   }
+  updateMBtn();
 }
 
 function saveMorning() {
@@ -416,11 +434,23 @@ function saveMorning() {
     data[date].prov = true;
   }
   store(data);
+  mSaved = {date, onset, waking, deep, mood};
+  updateMBtn();
   toast();
 }
 
 // ── Evening ───────────────────────────────────────────
 let _eInitDay = null;
+let eSaved = null;
+
+function updateEBtn() {
+  const btn = document.getElementById('eSaveBtn');
+  const date = document.getElementById('eDate').value;
+  const done = eSaved && eSaved.date===date && eSaved.sleepy===R.sleepy;
+  btn.textContent = done ? '保存済み' : '保存する';
+  btn.classList.toggle('saved', !!done);
+  btn.disabled = !!done;
+}
 
 function initEvening() {
   const today = jstToday();
@@ -436,10 +466,13 @@ function loadEveningData(date) {
   const rec = load()[date]||{};
   if (rec.evening) {
     setR('sleepy', rec.evening.sleepy);
+    eSaved = {date, sleepy: rec.evening.sleepy};
   } else {
     clearR('sleepy');
+    eSaved = null;
   }
   updateEPreview();
+  updateEBtn();
 }
 
 document.getElementById('eDate').addEventListener('change', e => loadEveningData(e.target.value));
@@ -457,6 +490,7 @@ function updateEPreview() {
   } else {
     box.style.display = 'none';
   }
+  updateEBtn();
 }
 
 function saveEvening() {
@@ -472,6 +506,7 @@ function saveEvening() {
     data[date].prov = false;
   }
   store(data);
+  eSaved = {date, sleepy: R.sleepy};
   updateEPreview();
   toast();
 }
