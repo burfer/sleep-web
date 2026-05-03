@@ -60,9 +60,9 @@ header h1{font-size:17px;font-weight:700;letter-spacing:.02em}
 
 /* Date input */
 .date-input{
-  width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;
+  width:100%;max-width:100%;min-width:0;padding:11px 14px;border:2px solid var(--border);border-radius:10px;
   font-size:15px;font-family:inherit;color:var(--text);background:#fff;outline:none;
-  transition:border-color .15s;
+  transition:border-color .15s;box-sizing:border-box;
 }
 .date-input:focus{border-color:var(--primary)}
 
