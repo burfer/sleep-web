@@ -1,9 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="110" fill="#6366f1"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <mask id="moon">
+      <circle cx="220" cy="262" r="142" fill="white"/>
+      <circle cx="288" cy="214" r="117" fill="black"/>
+    </mask>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
   <!-- Moon -->
-  <path d="M320 160 C320 240 264 296 184 296 C168 296 153 294 139 290 C163 334 210 364 264 364 C344 364 408 300 408 220 C408 166 378 119 334 95 C328 116 320 137 320 160 Z" fill="#fff" opacity="0.95"/>
+  <g filter="url(#glow)">
+    <circle cx="220" cy="262" r="142" fill="white" opacity="0.95" mask="url(#moon)"/>
+  </g>
+
   <!-- Stars -->
-  <circle cx="160" cy="170" r="8" fill="#e0e7ff"/>
-  <circle cx="130" cy="220" r="5" fill="#e0e7ff"/>
-  <circle cx="175" cy="135" r="5" fill="#e0e7ff"/>
+  <g filter="url(#glow)">
+    <!-- Large sparkle top-right -->
+    <g transform="translate(372,142)">
+      <path d="M0,-20 L4,-4 L20,0 L4,4 L0,20 L-4,4 L-20,0 L-4,-4 Z" fill="white" opacity="0.92"/>
+    </g>
+    <!-- Medium sparkle right -->
+    <g transform="translate(408,282)">
+      <path d="M0,-12 L2.2,-2.2 L12,0 L2.2,2.2 L0,12 L-2.2,2.2 L-12,0 L-2.2,-2.2 Z" fill="white" opacity="0.72"/>
+    </g>
+    <!-- Small sparkle left -->
+    <g transform="translate(148,155)">
+      <path d="M0,-9 L1.7,-1.7 L9,0 L1.7,1.7 L0,9 L-1.7,1.7 L-9,0 L-1.7,-1.7 Z" fill="white" opacity="0.60"/>
+    </g>
+  </g>
+
+  <!-- Tiny dots -->
+  <circle cx="325" cy="106" r="5" fill="white" opacity="0.50"/>
+  <circle cx="372" cy="334" r="4.5" fill="white" opacity="0.38"/>
+  <circle cx="148" cy="365" r="3.5" fill="white" opacity="0.32"/>
 </svg>
