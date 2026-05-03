@@ -1,4 +1,4 @@
-const CACHE = 'sleep-v1';
+const CACHE = 'sleep-v2';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
