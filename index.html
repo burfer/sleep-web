@@ -59,8 +59,9 @@ header h1{font-size:17px;font-weight:700;letter-spacing:.02em}
 .r-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.35)}
 
 /* Date input */
+.date-wrap{display:flex}
 .date-input{
-  display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+  flex:1;min-width:0;box-sizing:border-box;
   padding:11px 14px;border:2px solid var(--border);border-radius:10px;
   font-size:15px;font-family:inherit;color:var(--text);background:#fff;outline:none;
   transition:border-color .15s;
@@ -159,7 +160,7 @@ canvas{display:block;border-radius:8px}
   <div class="card">
     <div class="form-group" style="margin-bottom:0">
       <label class="form-label" for="mDate">日付</label>
-      <input id="mDate" type="date" class="date-input">
+      <div class="date-wrap"><input id="mDate" type="date" class="date-input"></div>
     </div>
   </div>
 
@@ -220,7 +221,7 @@ canvas{display:block;border-radius:8px}
   <div class="card">
     <div class="form-group" style="margin-bottom:0">
       <label class="form-label" for="eDate">日付</label>
-      <input id="eDate" type="date" class="date-input">
+      <div class="date-wrap"><input id="eDate" type="date" class="date-input"></div>
     </div>
   </div>
 
